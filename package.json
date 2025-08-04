@@ -1,0 +1,30 @@
+{
+  "name": "daily_devotionals",
+  "version": "0.1.1",
+  "description": "Devotionals api to manage daily devotionals crud",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yosefchaka/Devotionals_API.git"
+  },
+  "license": "ISC",
+  "author": "Yosef Hassen",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "test": "npm run test",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.1.0",
+    "typescript": "^5.9.2"
+  }
+}
