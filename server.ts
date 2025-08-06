@@ -44,12 +44,51 @@ app.get('/api/devotionals', (req: Request, res: Response) => {
   }
 });
 
-// app.post('/api/devotionals', (req: Request, res: Response) => {
-//   try{
-//     const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
-//     const devotionals = statement.
-//   }
-// })
+app.get('/api/devotionals/:id', (req: Request, res: Response) => {
+  try {
+      const statement = db.prepare('SELECT * FROM devotionals WHERE id = ? , deleted_at IS NULL ORDER BY created_at DESC');
+      const devotionals = statement.get(1);
+      res.status(200).json(devotionals);
+  } catch (error) {
+      res.status(404).json({ error: 'Devotionals Not Found' });
+  }
+});
+
+app.post('/api/devotionals', (req: Request, res: Response) => {
+  try{
+    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const devotionals = statement
+    res.status(201).json(devotionals)
+    console.log("Devotional created successfully");
+    
+  }
+  catch(error){
+    res.status(500).json({ error: 'Failed to create devotionals.' });
+  }
+})
+
+app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
+  try{
+    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const devotionals = statement
+    res.status(200).json(devotionals)
+  }
+  catch(error){
+    res.status(500).json({ error: 'Failed to update devotionals.' });
+  }
+})
+
+app.delete('/api/devotionals/:id', (req: Request, res: Response) => {
+  try{
+    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const devotionals = statement
+    res.status(204).json(devotionals)
+  }
+  catch(error){
+    res.status(500).json({ error: 'Failed to delete devotionals.' });
+  }
+})
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
