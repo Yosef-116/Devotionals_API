@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 const app = express();
 const PORT = 3000;
 
+app.use(express.json())
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dbPath = path.join(__dirname, 'devotionals.db');
@@ -67,23 +69,30 @@ app.get('/api/devotionals/:id', (req: Request, res: Response) => {
 
 app.post('/api/devotionals', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('INSERT INTO devotionals (verse ,content) VALUES(? , ?)');
-    const newDevotional = ["Philipians 4:13", "I can do all things through Christ"]
-    const devotionals = statement.run(newDevotional);
+    const { verse, content } = req.body;
+
+    if (!verse || !content) {
+      return res.status(400).json({ error: 'Both Verse and content are required' });
+    }
+    const statement = db.prepare('INSERT INTO devotionals (verse ,content) VALUES (? , ?)');
+    const devotionals = statement.run(verse, content);
+
     res.status(201).json({
       message: 'Devotional Created Successfully',
       id: devotionals.lastInsertRowid,
-      newDevotional
+      verse,
+      content
     });
   }
   catch(error){
+    console.error('Error creating devotional:', error);
     res.status(500).json({ error: 'Failed to create devotional.' });
   }
 })
 
 app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const statement = db.prepare('UPDATE devotionals SET verse = ? content = ? WHERE id = ? ');
     const devotionals = statement
     res.status(200).json(devotionals)
   }
