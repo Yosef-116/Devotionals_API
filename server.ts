@@ -92,11 +92,44 @@ app.post('/api/devotionals', (req: Request, res: Response) => {
 
 app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('UPDATE devotionals SET verse = ? content = ? WHERE id = ? ');
-    const devotionals = statement
-    res.status(200).json(devotionals)
+    const {id} = req.params;
+    const { verse, content } = req.body;
+
+    if (!verse && !content) {
+      return res.status(400).json({ error: 'Atleast "Verse" or "content" is required' });
+    }
+
+    if(isNaN(Number(id))){
+      return res.status(400).json( {error: 'Invalid id provided. Id must be a number'})
+      }
+    let updateFields: string[] = []
+    let params :(string | number)[] = []
+    
+    if(verse !== undefined){
+      updateFields.push('verse = ?')
+      params.push(verse)
+    }
+    if(content !== undefined){
+      updateFields.push('content = ?')
+      params.push(content)
+    }
+    updateFields.push('updated_at = CURRENT_TIMESTAMP')
+    params.push(Number(id));
+
+    const statement = db.prepare(`UPDATE devotionals SET ${updateFields.join(', ')} WHERE id = ? AND deleted_at IS NULL`);
+    const devotionals = statement.run(...params);
+
+    if(devotionals.changes > 0){
+      res.status(200).json({
+        message: `Devotionals with id ${id} is updated successfully`, 
+        verse, content
+      })
+    }else{
+      res.status(404).json({ error: 'Devotional not found or could not be updated.' });
+      }
   }
   catch(error){
+    console.error('Error updating devotional:', error);
     res.status(500).json({ error: 'Failed to update devotionals.' });
   }
 })
