@@ -93,31 +93,18 @@ app.post('/api/devotionals', (req: Request, res: Response) => {
 app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
     const {id} = req.params;
-    const { verse, content } = req.body;
+    if(isNaN(Number(id))){
+      return res.status(400).json( {error: 'Invalid id provided. Id must be a number'})
+      }
 
+    const { verse, content } = req.body;
     if (!verse && !content) {
       return res.status(400).json({ error: 'Atleast "Verse" or "content" is required' });
     }
 
-    if(isNaN(Number(id))){
-      return res.status(400).json( {error: 'Invalid id provided. Id must be a number'})
-      }
-    let updateFields: string[] = []
-    let params :(string | number)[] = []
     
-    if(verse !== undefined){
-      updateFields.push('verse = ?')
-      params.push(verse)
-    }
-    if(content !== undefined){
-      updateFields.push('content = ?')
-      params.push(content)
-    }
-    updateFields.push('updated_at = CURRENT_TIMESTAMP')
-    params.push(Number(id));
-
-    const statement = db.prepare(`UPDATE devotionals SET ${updateFields.join(', ')} WHERE id = ? AND deleted_at IS NULL`);
-    const devotionals = statement.run(...params);
+    const statement = db.prepare(`UPDATE devotionals SET verse = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`);
+    const devotionals = statement.run(verse, content, id);
 
     if(devotionals.changes > 0){
       res.status(200).json({
