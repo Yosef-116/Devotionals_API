@@ -102,7 +102,6 @@ app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Atleast "Verse" or "content" is required' });
     }
 
-    
     const statement = db.prepare(`UPDATE devotionals SET verse = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`);
     const devotionals = statement.run(verse, content, id);
 
@@ -123,11 +122,23 @@ app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
 
 app.delete('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('UPDATE devotionals WHERE id = ?, deleted_at IS NULL');
-    const devotionals = statement
-    res.status(204).json(devotionals)
+    const {id} = req.params;
+    if(isNaN(Number(id))){
+      return res.status(400).json({error: 'Invalid id provided. Id must be a number'});
+      }
+
+    const statement = db.prepare('UPDATE devotionals SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL');
+    const devotionals = statement.run(Number(id));
+    if(devotionals.changes > 0){
+      res.status(204).json({
+      message: `Devotional with an id ${id} is soft-deleted successfully.`
+    })
+    }else{
+      res.status(404).json({ error: 'Devotional not found or already deleted.' });
+    }
   }
   catch(error){
+    console.error(`Error deleting devotional with ID ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to delete devotionals.' });
   }
 })
