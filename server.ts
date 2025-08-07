@@ -130,9 +130,7 @@ app.delete('/api/devotionals/:id', (req: Request, res: Response) => {
     const statement = db.prepare('UPDATE devotionals SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL');
     const devotionals = statement.run(Number(id));
     if(devotionals.changes > 0){
-      res.status(204).json({
-      message: `Devotional with an id ${id} is soft-deleted successfully.`
-    })
+      res.status(204).send()
     }else{
       res.status(404).json({ error: 'Devotional not found or already deleted.' });
     }
