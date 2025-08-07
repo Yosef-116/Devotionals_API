@@ -67,12 +67,17 @@ app.get('/api/devotionals/:id', (req: Request, res: Response) => {
 
 app.post('/api/devotionals', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('INSERT INTO devotionals WHERE created_at IS NULL ORDER BY created_at DESC');
-    const devotionals = statement
-    res.status(201).json(devotionals)
+    const statement = db.prepare('INSERT INTO devotionals (verse ,content) VALUES(? , ?)');
+    const newDevotional = ["Philipians 4:13", "I can do all things through Christ"]
+    const devotionals = statement.run(newDevotional);
+    res.status(201).json({
+      message: 'Devotional Created Successfully',
+      id: devotionals.lastInsertRowid,
+      newDevotional
+    });
   }
   catch(error){
-    res.status(500).json({ error: 'Failed to create devotionals.' });
+    res.status(500).json({ error: 'Failed to create devotional.' });
   }
 })
 
