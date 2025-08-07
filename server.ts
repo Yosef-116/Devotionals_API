@@ -46,21 +46,30 @@ app.get('/api/devotionals', (req: Request, res: Response) => {
 
 app.get('/api/devotionals/:id', (req: Request, res: Response) => {
   try {
-      const statement = db.prepare('SELECT * FROM devotionals WHERE id = ? , deleted_at IS NULL ORDER BY created_at DESC');
-      const devotionals = statement.get(1);
-      res.status(200).json(devotionals);
-  } catch (error) {
+      const {id} = req.params;
+
+      if(isNaN(Number(id))){
+        return res.status(400).json( {error: 'Invalid id provided. Id must be a number'})
+      }
+      const statement = db.prepare('SELECT * FROM devotionals WHERE id = ? AND deleted_at IS NULL');
+      const devotionals = statement.get(id);
+
+      if(devotionals){
+        res.status(200).json(devotionals);
+      }else{
+        res.status(404).json( { error: 'Devotionals Not Found'})
+      }
+  } 
+  catch (error) {
       res.status(404).json({ error: 'Devotionals Not Found' });
   }
 });
 
 app.post('/api/devotionals', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const statement = db.prepare('INSERT INTO devotionals WHERE created_at IS NULL ORDER BY created_at DESC');
     const devotionals = statement
     res.status(201).json(devotionals)
-    console.log("Devotional created successfully");
-    
   }
   catch(error){
     res.status(500).json({ error: 'Failed to create devotionals.' });
@@ -80,7 +89,7 @@ app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
 
 app.delete('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
-    const statement = db.prepare('INSERT INTO devotionals WHERE id IS NULL ORDER BY created_at DESC');
+    const statement = db.prepare('UPDATE devotionals WHERE id = ?, deleted_at IS NULL');
     const devotionals = statement
     res.status(204).json(devotionals)
   }
