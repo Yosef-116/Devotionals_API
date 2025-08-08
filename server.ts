@@ -59,7 +59,7 @@ app.get('/api/devotionals/:id', (req: Request, res: Response) => {
       if(devotionals){
         res.status(200).json(devotionals);
       }else{
-        res.status(404).json( { error: 'Devotionals Not Found'})
+        res.status(404).json( { error: 'Devotionals Not Found or devotionals is deleted.'})
       }
   } 
   catch (error) {
@@ -99,11 +99,16 @@ app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
 
     const { verse, content } = req.body;
     if (!verse && !content) {
-      return res.status(400).json({ error: 'Atleast "Verse" or "content" is required' });
+      return res.status(400).json({ error: 'Atleast Verse or content is required' });
     }
-
-    const statement = db.prepare(`UPDATE devotionals SET verse = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`);
-    const devotionals = statement.run(verse, content, id);
+    let devotionals;
+    if(!verse){
+      devotionals = db.prepare(`UPDATE devotionals SET content = ? , updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`).run(content, id);
+    }else if(!content){
+      devotionals = db.prepare(`UPDATE devotionals SET verse = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`).run(verse, id);
+    }else{
+      devotionals = db.prepare(`UPDATE devotionals SET content = ?, verse = ? ,updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`).run(verse, content, id);
+    }
 
     if(devotionals.changes > 0){
       res.status(200).json({
