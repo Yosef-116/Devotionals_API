@@ -4,6 +4,8 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import { error } from 'console';
 
 const app = express();
 const PORT = 3000;
@@ -96,6 +98,30 @@ app.post('/api/devotionals', (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to create devotional.' });
   }
 })
+
+app.post('/api/register', (req: Request, res: Response) => {
+  try{
+    const { username, password } = req.body;
+
+    if(!username || !password){
+      return res.status(400).json({ error: 'Both username and password are required'})
+    }
+
+    const statement = db.prepare(`INSERT INTO users (username, password_hash) VALUES(? , ?)`);
+    const saltRounds = 10;
+    const password_hash = bcrypt.hashSync(password, saltRounds);
+    const users = statement.run(username, password_hash);
+
+    res.status(201).json({
+      message: 'You are registered successfully',
+      username
+    })
+  }
+  catch{
+    console.error('Error registering user: ', error);
+    res.status(500).json({error: 'Registration Failed'});
+  }
+});
 
 app.patch('/api/devotionals/:id', (req: Request, res: Response) => {
   try{
