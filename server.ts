@@ -28,9 +28,16 @@ if (!isDbCreated) {
         deleted_at TEXT DEFAULT NULL
       );
     `);
-
     console.log('Database and all tables created successfully!');
 }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    password_hash TEXT NOT NULL
+    )`
+  );
 
 app.get('/hello_world', (req: Request, res: Response) => {
   res.send('Hello, World!');
